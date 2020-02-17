@@ -12,7 +12,7 @@ TOTAL_NUM_TOPICS=30
 
 if __name__ == '__main__':
 
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print('Incorrect number of arguments provided.')
         print('Provide the following: <lda_model_file_path> <input_dir_path> <output_file_path>')
         sys.exit(0)
