@@ -8,20 +8,30 @@ from gensim import corpora, models
 from gensim.models import CoherenceModel
 from argparse import ArgumentParser
 
+
 def parse_arguments():
     parser = ArgumentParser('Train LDA for all tweets in JSON format in input '
                             'directory.')
     parser.add_argument('--input_dir_path', '-i', type=str,
                         help='Path to input directory containing JSON files '
-                        'with tweets.'
+                        'with tweets.')
     parser.add_argument('--mallet_path', '-m', type=str,
                         help='Path to mallet directory (download from '
                         'http://mallet.cs.umass.edu/dist/mallet-2.0.8.zip).')
-    parser.add_argument('--model_num_topics', '-t', type=str,
-                        help='Number of topics in trained LDA model.')
+    parser.add_argument('--min_topics', type=int,
+                        help='Min number of topics to train LDA model.')
+    parser.add_argument('--max_topics', type=int,
+                        help='Max number of topics to train LDA model.')
+    parser.add_argument('--topic_num_interval', type=int,
+                        help='Interval of number of topics to train LDA '
+                        'model.')
     parser.add_argument('--output_dir_path', '-o', type=str,
                         help='Path to output directory containing trained '
-                        'LDA model files'.)
+                        'LDA model files.')
+    parser.add_argument('--spacy_model', '-s', type=str,
+                        default='en_core_web_sm',
+                        help='Name of spacy model to use.'
+                        )
     return parser.parse_args()
 
 
@@ -34,10 +44,10 @@ if __name__ == '__main__':
         print('Input path must be a directory.')
     output_path = args.output_dir_path
     if not os.path.isdir(output_path):
-        print('Output path must be a directory.')
+        os.makedirs(output_path)
 
     # load spacy nlp module
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load(args.spacy_model)
 
     tweet_docs = []
     # iterate over each subdir in input_subdir_paths
@@ -78,7 +88,7 @@ if __name__ == '__main__':
     corpus = [dictionary.doc2bow(doc) for doc in tweet_docs]
 
     # generate LDA model
-    # ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=20, 
+    # ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=20,
     # id2word=dictionary, passes=20)
     mallet_path = args.mallet_path
 
@@ -86,15 +96,16 @@ if __name__ == '__main__':
     output_file_path = os.path.join(output_path, 'lda_hyperparam_output.txt')
     with open(output_file_path, 'w') as file_writer:
 
-        for num_topics in range(30, 35, 5):
+        for num_topics in range(args.min_topics, args.max_topics,
+                                args.topic_num_interval):
 
             print('Running LDA with %2d topics' % num_topics)
 
-            ldamodel = gensim.models.wrappers.LdaMallet(mallet_path, 
-                                                        corpus=corpus, 
+            ldamodel = gensim.models.wrappers.LdaMallet(mallet_path,
+                                                        corpus=corpus,
                                                         num_topics=num_topics,
                                                         id2word=dictionary)
-            ldamodel.save(os.path.join(output_path, 
+            ldamodel.save(os.path.join(output_path,
                                        'lda_model_n%02d' % num_topics))
 
             topics = ldamodel.print_topics(num_topics=num_topics, num_words=20)
@@ -106,8 +117,8 @@ if __name__ == '__main__':
                 file_writer.write(str(t)+'\n')
 
             # Compute Coherence Score
-            coherence_model_lda = CoherenceModel(model=ldamodel, 
-                                                 texts=tweet_docs, 
+            coherence_model_lda = CoherenceModel(model=ldamodel,
+                                                 texts=tweet_docs,
                                                  dictionary=dictionary,
                                                  coherence='c_v')
             coherence_lda = coherence_model_lda.get_coherence()
