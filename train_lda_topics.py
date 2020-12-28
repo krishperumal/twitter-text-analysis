@@ -96,7 +96,7 @@ if __name__ == '__main__':
     output_file_path = os.path.join(output_path, 'lda_hyperparam_output.txt')
     with open(output_file_path, 'w') as file_writer:
 
-        for num_topics in range(args.min_topics, args.max_topics,
+        for num_topics in range(args.min_topics, args.max_topics+1,
                                 args.topic_num_interval):
 
             print('Running LDA with %2d topics' % num_topics)
