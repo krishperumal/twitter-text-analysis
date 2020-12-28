@@ -4,7 +4,7 @@ import json
 import os
 import spacy
 import gensim
-from gensim import corpora, models
+from gensim import corpora
 from gensim.models import CoherenceModel
 from argparse import ArgumentParser
 
