@@ -3,6 +3,7 @@
 import json
 import os
 import spacy
+import pickle
 import gensim
 from gensim import corpora
 from gensim.models import CoherenceModel
@@ -104,9 +105,16 @@ if __name__ == '__main__':
             ldamodel = gensim.models.wrappers.LdaMallet(mallet_path,
                                                         corpus=corpus,
                                                         num_topics=num_topics,
-                                                        id2word=dictionary)
-            ldamodel.save(os.path.join(output_path,
-                                       'lda_model_n%02d' % num_topics))
+                                                        id2word=dictionary,
+                                                        prefix=os.path.join(output_path, 'lda_model_n' + str(num_topics)))
+
+            # ldamodel.save(os.path.join(output_path,
+            #                            'lda_model_n%02d' % num_topics))
+
+            with open(os.path.join(output_path,
+                                   'lda_model_n%02d.pkl' % num_topics), 'wb') \
+                    as pickle_writer:
+                pickle.dump(ldamodel, pickle_writer)
 
             topics = ldamodel.print_topics(num_topics=num_topics, num_words=20)
             file_writer.write('=================='
