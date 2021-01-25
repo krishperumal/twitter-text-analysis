@@ -3,6 +3,7 @@ with tweets.
 """
 import json
 import os
+import csv
 import spacy
 import gensim
 from gensim import corpora, models
@@ -10,29 +11,28 @@ from gensim.models import CoherenceModel
 from gensim.models.ldamodel import LdaModel
 from argparse import ArgumentParser
 
+
 def parse_arguments():
     parser = ArgumentParser('Get dominant LDA topic distribution for each '
                             'JSON file in input directory with tweets.')
     parser.add_argument('--input_dir_path', '-i', type=str,
                         help='Path to input directory containing JSON files '
-                        'with tweets.'
+                        'with tweets.')
     parser.add_argument('--model_path', '-m', type=str,
                         help='Path to LDA trained model file.')
-    parser.add_argument('--model_num_topics', '-t', type=str,
+    parser.add_argument('--model_num_topics', '-t', type=int,
                         help='Number of topics in trained LDA model.')
     parser.add_argument('--output_file_path', '-o', type=str,
                         help='Path to output CSV file containing dominant '
-                        'topic information.'
+                        'topic information.')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_arguments()
 
-    args.model_path = sys.argv[1]
     if not os.path.isdir(args.input_dir_path):
         print('Input path must be a directory.')
-    args.output_file_path = sys.argv[3]
 
     # load spacy nlp module
     nlp = spacy.load('en_core_web_sm')
@@ -42,12 +42,12 @@ if __name__ == '__main__':
 
     with open(args.output_file_path, 'w', encoding='utf-8') as file_writer:
 
-        csv_writer = csv.DictWriter(file_writer, 
-                                    fieldnames=['filename'] + 
-                                    ['topic_' + str(t) 
+        csv_writer = csv.DictWriter(file_writer,
+                                    fieldnames=['filename'] +
+                                    ['topic_' + str(t)
                                      for t in range(args.model_num_topics)])
         csv_writer.writeheader()
-        
+
         # iterate over each subdir in input_subdir_paths
         for input_file_name in os.listdir(args.input_dir_path):
 
@@ -57,7 +57,8 @@ if __name__ == '__main__':
 
             print('Processing file: %s' % input_file_name)
 
-            input_file_path = os.path.join(args.input_dir_path, input_file_name)
+            input_file_path = os.path.join(
+                args.input_dir_path, input_file_name)
 
             # load data from json file
             with open(input_file_path, 'r') as file_reader:
